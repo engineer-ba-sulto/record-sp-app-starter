@@ -1,95 +1,126 @@
-import { Link } from "expo-router";
-import React from "react";
-import { Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AdBanner } from "@/components/ads";
+import { useAdInterstitial } from "@/hooks";
+import React, { useEffect } from "react";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Page() {
-  return (
-    <View className="flex flex-1">
-      <Header />
-      <Content />
-      <Footer />
-    </View>
-  );
-}
+  const { isLoaded, isLoading, error, loadAd, showAd, clearError } =
+    useAdInterstitial();
 
-function Content() {
+  // 画面表示時に広告を読み込む
+  useEffect(() => {
+    loadAd();
+  }, [loadAd]);
+
+  // エラーが発生した場合のアラート表示
+  useEffect(() => {
+    if (error) {
+      Alert.alert("広告エラー", error, [{ text: "OK", onPress: clearError }]);
+    }
+  }, [error, clearError]);
+
+  const handleShowAd = async () => {
+    const success = await showAd();
+    if (!success) {
+      Alert.alert(
+        "広告表示失敗",
+        "広告が準備できていません。再度お試しください。",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  const handleReloadAd = async () => {
+    const success = await loadAd();
+    if (success) {
+      Alert.alert("成功", "広告を再読み込みしました");
+    }
+  };
+
   return (
-    <View className="flex-1">
-      <View className="py-12 md:py-24 lg:py-32 xl:py-48">
-        <View className="px-4 md:px-6">
-          <View className="flex flex-col items-center gap-4 text-center">
-            <Text
-              role="heading"
-              className="text-3xl text-center native:text-5xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl"
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 justify-center items-center px-6">
+        <View className="items-center gap-6">
+          <Text className="text-2xl font-bold text-center text-gray-900">
+            AdMob 広告サンプル
+          </Text>
+          <Text className="text-base text-center text-gray-600 max-w-[280px]">
+            このアプリはAdMob広告の実装サンプルです
+          </Text>
+        </View>
+
+        {/* インタースティシャル広告コントロール */}
+        <View className="items-center gap-4 w-full max-w-[300px]">
+          <Text className="text-lg font-semibold text-gray-800">
+            インタースティシャル広告
+          </Text>
+
+          <View className="items-center gap-2">
+            <Text className="text-sm text-gray-600">
+              状態:{" "}
+              {isLoading ? "読み込み中..." : isLoaded ? "準備完了" : "未準備"}
+            </Text>
+
+            <TouchableOpacity
+              className="bg-blue-500 px-6 py-3 rounded-lg w-full items-center"
+              onPress={handleShowAd}
+              disabled={!isLoaded || isLoading}
             >
-              Welcome to Project ACME
-            </Text>
-            <Text className="mx-auto max-w-[700px] text-lg text-center text-gray-500 md:text-xl dark:text-gray-400">
-              Discover and collaborate on acme. Explore our services now.
+              <Text className="text-white font-semibold">
+                {isLoading ? "読み込み中..." : "広告を表示"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="bg-green-500 px-6 py-3 rounded-lg w-full items-center"
+              onPress={handleReloadAd}
+              disabled={isLoading}
+            >
+              <Text className="text-white font-semibold">広告を再読み込み</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* シミュレーション例 */}
+          <View className="items-center gap-2 mt-4">
+            <Text className="text-sm font-semibold text-gray-700">
+              シミュレーション例
             </Text>
 
-            <View className="gap-4">
-              <Link
-                suppressHighlighting
-                className="flex h-9 items-center justify-center overflow-hidden rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 web:shadow ios:shadow transition-colors hover:bg-gray-900/90 active:bg-gray-400/90 web:focus-visible:outline-none web:focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
-                href="/"
-              >
-                Explore
-              </Link>
-            </View>
+            <TouchableOpacity
+              className="bg-purple-500 px-6 py-3 rounded-lg w-full items-center"
+              onPress={() => {
+                Alert.alert("レベルクリア！", "次のレベルに進みます", [
+                  {
+                    text: "キャンセル",
+                    style: "cancel",
+                  },
+                  {
+                    text: "広告を見て進む",
+                    onPress: async () => {
+                      const success = await showAd();
+                      if (success) {
+                        Alert.alert("次のレベルへ！");
+                      } else {
+                        Alert.alert("次のレベルへ！", "（広告なし）");
+                      }
+                    },
+                  },
+                ]);
+              }}
+            >
+              <Text className="text-white font-semibold">
+                レベルクリアをシミュレート
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </View>
-  );
-}
 
-function Header() {
-  const { top } = useSafeAreaInsets();
-  return (
-    <View style={{ paddingTop: top }}>
-      <View className="px-4 lg:px-6 h-14 flex items-center flex-row justify-between ">
-        <Link className="font-bold flex-1 items-center justify-center" href="/">
-          ACME
-        </Link>
-        <View className="flex flex-row gap-4 sm:gap-6">
-          <Link
-            className="text-md font-medium hover:underline web:underline-offset-4"
-            href="/"
-          >
-            About
-          </Link>
-          <Link
-            className="text-md font-medium hover:underline web:underline-offset-4"
-            href="/"
-          >
-            Product
-          </Link>
-          <Link
-            className="text-md font-medium hover:underline web:underline-offset-4"
-            href="/"
-          >
-            Pricing
-          </Link>
+        {/* バナー広告 */}
+        <View className="flex-1 justify-end items-center w-full max-w-[320px] mb-4">
+          <AdBanner />
         </View>
       </View>
-    </View>
-  );
-}
-
-function Footer() {
-  const { bottom } = useSafeAreaInsets();
-  return (
-    <View
-      className="flex shrink-0 bg-gray-100 native:hidden"
-      style={{ paddingBottom: bottom }}
-    >
-      <View className="py-6 flex-1 items-start px-4 md:px-6 ">
-        <Text className={"text-center text-gray-700"}>
-          © {new Date().getFullYear()} Me
-        </Text>
-      </View>
-    </View>
+    </SafeAreaView>
   );
 }

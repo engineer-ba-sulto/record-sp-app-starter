@@ -6,13 +6,29 @@
     "output": "static"
   },
   "plugins": [
+    "expo-router",
     [
-      "expo-router",
+      "expo-build-properties",
       {
-        "origin": "https://n"
+        "ios": {
+          "useFrameworks": "static"
+        }
+      }
+    ],
+    [
+      "react-native-google-mobile-ads",
+      {
+        "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+        "iosAppId": "ca-app-pub-3940256099942544~1458002511"
       }
     ]
   ],
   "name": "admob-components-sample",
-  "slug": "admob-components-sample"
+  "slug": "admob-components-sample",
+  "ios": {
+    "bundleIdentifier": "com.engineerbasulto.admob-components-sample"
+  },
+  "android": {
+    "package": "com.engineerbasulto.admobcomponentssample"
+  }
 }
