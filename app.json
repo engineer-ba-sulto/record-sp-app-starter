@@ -23,10 +23,10 @@
       }
     ]
   ],
-  "name": "admob-components-sample",
-  "slug": "admob-components-sample",
+  "name": "record-sp-app-starter",
+  "slug": "record-sp-app-starter",
   "ios": {
-    "bundleIdentifier": "com.engineerbasulto.admob-components-sample"
+    "bundleIdentifier": "com.engineerbasulto.record-sp-app-starter"
   },
   "android": {
     "package": "com.engineerbasulto.admobcomponentssample"
