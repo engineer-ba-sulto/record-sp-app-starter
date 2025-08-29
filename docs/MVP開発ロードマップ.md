@@ -14,20 +14,30 @@
   - `src/app/auth/index.tsx` を作成して `/auth` ルートを有効化（簡易ログイン UI で可）
   - 上記完了後、ステップ 2（Supabase 認証）へ進む
 
-## **ステップ 2：認証・データベース（Supabase）**
+## **ステップ 2：認証（Supabase Auth）**
 
-- **2-1. Supabase 設定**: Supabase Authentication を有効化します（まずはメールアドレス＆パスワード認証から）。
-- **2-2. UI 作成**: 新規登録画面とログイン画面の共通 UI コンポーネントを作成します。
-- **2-3. 機能実装**: `@supabase/supabase-js` を利用して、ユーザーの新規登録（`signUp`）、ログイン（`signInWithPassword`）、ログアウト（`signOut`）機能を実装します。
-- **2-4. アクセス制御**: Expo Router にて Supabase のセッションを監視し、非ログインユーザーはログイン画面へ、**ログイン済みユーザーは仮のホーム画面（`(tabs)/index.tsx` など）へ自動的に振り分ける共通ロジック**を構築します。
-- **2-5. セキュリティ設定**: Supabase の Row Level Security（RLS）で「ユーザーは自身のデータしか読み書きできない」という基本ポリシーを設定します（対象テーブルは各アプリで追記）。
-- **2-6. 既存 Firebase からの移行（任意）**: 既存プロジェクトから移行する場合は、Supabase の公式ツール（firebase-to-supabase）を用いて Auth ユーザーおよび Firestore データを移行します。
+- **2-1. 認証設定**: Supabase Authentication を有効化（メール/パスワードから開始）。
+- **2-2. UI 作成**: 新規登録・ログインの共通 UI コンポーネントを作成。
+  - フォーム基盤に React Hook Form を採用し、`@hookform/resolvers/zod` + `zod` でスキーマバリデーションを実装。
+  - React Native の入力は `Controller` 経由で `TextInput` を接続し、再レンダリングを最小化。
+  - 入力エラー表示はコンポーネント化して再利用（フィールド単位のエラーメッセージ、フォーム全体のエラー）。
+  - コンポーネント分割: Presentational コンポーネント（表示専用）と Container/Screen（状態・ハンドラ保持）を分離。
+  - ロジック分離: Supabase 呼び出し、フォーム送信、ルーティングは `src/hooks/auth/*` や `src/services/*` に集約し、UI からは props で受け渡し。
+  - ディレクトリ例: `src/components/auth/*`（入力/ボタン/エラー表示）、`src/hooks/auth/useAuthForm.ts`、画面は `src/app/auth/index.tsx`。
+- **2-3. 機能実装**: `@supabase/supabase-js` で `signUp` / `signInWithPassword` / `signOut` を実装。
+- **2-4. アクセス制御**: Expo Router でセッション監視し、未ログインは `/auth`、ログイン済みは仮ホーム（`(tabs)/index.tsx` 等）へ自動振り分け。
 
-## **ステップ 3：ペイウォールの実装**
+## **ステップ 3：データベース（Supabase/Postgres）**
 
-- **3-1. RevenueCat 導入**: RevenueCat を課金基盤として採用します。プロジェクト/App を作成し、ストア製品（App Store/Google Play）と Offerings/Packages を設定します。クライアントには `react-native-purchases`（Expo の場合は Config Plugin）を導入します。
-- **3-2. UI 作成**: タイトル、特典リスト、価格表示、CTA（購入・復元・利用規約/プライバシー）を含む再利用可能なペイウォールコンポーネントを作成します。RevenueCat の `Offerings` から取得したプラン/価格を表示します。
-- **3-3. 表示タイミング**: オンボーディング完了 → 認証完了の直後に初回表示。以降は機能到達時/制限到達時のトリガーで適宜表示します。
-- **3-4. 購入/復元フロー**: `Purchases.purchasePackage` による購入、`Purchases.restorePurchases` による復元を実装し、完了後に `CustomerInfo` を取得して状態を反映します（エラー/キャンセル時のハンドリングを含む）。
-- **3-5. エンタイトルメント判定と機能ガード**: `CustomerInfo.entitlements.active` の有無（例: `premium`）でプレミアム状態を判定し、未購読時はペイウォールへ誘導します。起動時/復帰時に最新状態をフェッチして反映します。
-- **3-6. サーバ連携（任意）**: RevenueCat Webhooks → Supabase Edge Functions 経由で購入/解約イベントを記録し、必要に応じて Supabase 上に購読状態を保持します（アナリティクスは対象外）。
+- **3-1. セキュリティ設定（RLS）**: 「ユーザーは自身のデータのみ」ポリシーを基本方針として設定。
+- **3-2. スキーマ初期化**: 各アプリの要件に応じてテーブル/インデックス/制約を設計・作成（このロードマップでは雛形レベルに留める）。
+
+## **ステップ 4：ペイウォールの実装**
+
+- **4-1. RevenueCat 導入**: RevenueCat を課金基盤として採用。ストア製品と Offerings/Packages を設定。クライアントに `react-native-purchases` を導入。
+- **4-2. UI 作成**: タイトル/特典/価格/CTA（購入・復元・規約/プライバシー）を含む再利用可能コンポーネントを作成。`Offerings` からプラン/価格を表示。
+  - コンポーネント分割/ロジック分離はステップ 2 の方針に準拠（`src/components/paywall/*`, `src/hooks/paywall/*` など）。
+- **4-3. 表示タイミング**: オンボーディング完了 → 認証完了直後に初回表示。以降は機能到達/制限到達時に表示。
+- **4-4. 購入/復元フロー**: `Purchases.purchasePackage` と `Purchases.restorePurchases` を実装し、完了後 `CustomerInfo` を反映（エラー/キャンセルハンドリング含む）。
+- **4-5. エンタイトルメント判定/機能ガード**: `CustomerInfo.entitlements.active`（例: `premium`）でプレミアム判定。未購読時はペイウォールへ誘導。起動時/復帰時に最新状態をフェッチ。
+- **4-6. サーバ連携（任意）**: RevenueCat Webhooks → Supabase Edge Functions で購入/解約イベントを記録し、必要に応じて購読状態を Supabase に保持（アナリティクスは対象外）。
