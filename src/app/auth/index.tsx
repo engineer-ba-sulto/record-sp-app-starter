@@ -5,42 +5,34 @@ import {
   SubmitButton,
   TextField,
 } from "@/components/auth";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuthForm } from "@/hooks/auth/useAuthForm";
 import React from "react";
-import { useForm } from "react-hook-form";
-import { SafeAreaView, Text, View } from "react-native";
-import { z } from "zod";
-
-const schema = z.object({
-  email: z.string().email("メールアドレスの形式が正しくありません"),
-  password: z.string().min(6, "パスワードは6文字以上で入力してください"),
-});
-
-type FormValues = z.infer<typeof schema>;
+import { SafeAreaView, Text, TouchableOpacity, View } from "react-native";
 
 export default function AuthPage() {
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { email: "", password: "" },
-    mode: "onSubmit",
-    reValidateMode: "onChange",
-  });
-
-  const onSubmit = async (values: FormValues) => {
-    // 認証実装は別チケットで対応
-    console.log("submit", values);
-  };
+    onSubmit,
+    formError,
+    successMessage,
+    mode,
+    toggleMode,
+  } = useAuthForm();
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-1 px-6 py-8 gap-6">
         <View className="mt-8">
-          <Text className="text-2xl font-bold text-gray-900">ログイン</Text>
-          <Text className="text-gray-600 mt-2">メールアドレスでログイン</Text>
+          <Text className="text-2xl font-bold text-gray-900">
+            {mode === "signin" ? "ログイン" : "新規登録"}
+          </Text>
+          <Text className="text-gray-600 mt-2">
+            {mode === "signin"
+              ? "メールアドレスでログイン"
+              : "メールアドレスでアカウントを作成"}
+          </Text>
         </View>
 
         <View className="gap-2 mt-4">
@@ -61,18 +53,32 @@ export default function AuthPage() {
           <FieldErrorMessage message={errors.password?.message} />
         </View>
 
-        <FormError message={undefined} />
+        <FormError message={formError} />
+
+        {successMessage ? (
+          <Text className="text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2 text-xs">
+            {successMessage}
+          </Text>
+        ) : null}
 
         <SubmitButton
-          title="ログイン"
+          title={mode === "signin" ? "ログイン" : "新規登録"}
           loading={isSubmitting}
           disabled={isSubmitting}
           onPress={handleSubmit(onSubmit)}
         />
 
+        <TouchableOpacity onPress={toggleMode} className="mt-2">
+          <Text className="text-center text-blue-600">
+            {mode === "signin"
+              ? "アカウントをお持ちでないですか？新規登録"
+              : "すでにアカウントをお持ちですか？ログイン"}
+          </Text>
+        </TouchableOpacity>
+
         <View className="mt-auto">
           <Text className="text-center text-gray-400 text-xs">
-            実際の認証は次のステップで実装します
+            Supabase認証を使用
           </Text>
         </View>
       </View>
