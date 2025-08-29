@@ -37,7 +37,7 @@ export const useOnboardingContainer = ({
   screens,
 }: OnboardingContainerLogicProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { completeOnboarding } = useOnboarding();
+  const { completeOnboardingWithNavigation } = useOnboarding();
   const totalScreens = screens.length;
 
   const handleNext = () => {
@@ -48,8 +48,8 @@ export const useOnboardingContainer = ({
 
   const handleSkip = async () => {
     try {
-      // オンボーディング完了状態を保存（UIの再描画で自動的にタブナビゲーションに遷移）
-      await completeOnboarding();
+      // オンボーディング完了と認証画面への遷移を統合実行
+      await completeOnboardingWithNavigation();
       if (onSkip) {
         onSkip();
       }
@@ -61,8 +61,8 @@ export const useOnboardingContainer = ({
 
   const handleComplete = async () => {
     try {
-      // オンボーディング完了状態を保存（UIの再描画で自動的にタブナビゲーションに遷移）
-      await completeOnboarding();
+      // オンボーディング完了と認証画面への遷移を統合実行
+      await completeOnboardingWithNavigation();
       if (onComplete) {
         onComplete();
       }
