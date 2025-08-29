@@ -327,6 +327,26 @@ export const getAdUnitId = (type: "banner" | "interstitial" | "rewarded") => {
 
 - 広告表示が失敗してもアプリの機能が停止しないように実装してください
 
+## Supabase 接続の初期設定（開発用メモ）
+
+- 環境変数（`.env`）で `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` を管理します。
+- サンプル: `.env.example` を用意しています。値を設定して `.env` にコピーしてください。
+- 参照コード:
+  - `src/config/supabase.ts`: `process.env` から公開環境変数を参照
+  - `src/services/supabaseClient.ts`: 単一インスタンスの Supabase クライアント生成
+- 接続確認例（任意の画面などで）:
+
+```ts
+import supabase from "@/services/supabaseClient";
+
+async function pingSupabase() {
+  const { data, error } = await supabase.auth.getUser();
+  console.log({ data, error });
+}
+```
+
+> RLS は「有効のまま」を前提とします。テーブル作成時にポリシーを適切に追加してください。
+
 ## 参考資料
 
 - [AdMob 公式ドキュメント](https://admob.google.com/)

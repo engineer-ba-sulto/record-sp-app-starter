@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { OnboardingContainer } from "../../components/onboarding";
 import { useOnboarding } from "../../hooks/useOnboarding";
+import supabase from "../../services/supabaseClient";
 
 export default function SettingsPage() {
   const { completeOnboarding } = useOnboarding();
@@ -68,6 +68,88 @@ export default function SettingsPage() {
     }
   };
 
+  // Supabase接続テスト
+  const handleTestSupabase = async () => {
+    try {
+      // 接続確認用のクエリを実行（auth.getSession()でセッション確認）
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+
+      if (sessionError) {
+        // プロジェクトが存在しない場合のエラー
+        if (
+          sessionError.message?.includes("404") ||
+          sessionError.message?.includes("Project not found") ||
+          sessionError.status === 404
+        ) {
+          Alert.alert(
+            "プロジェクトエラー",
+            "指定されたSupabaseプロジェクトが見つかりません。\nURLまたはプロジェクトIDを確認してください。"
+          );
+          console.error("Supabase project not found:", sessionError);
+          return;
+        }
+
+        // APIキーエラー
+        if (
+          sessionError.message?.includes("401") ||
+          sessionError.message?.includes("Unauthorized") ||
+          sessionError.message?.includes("invalid_api_key") ||
+          sessionError.status === 401
+        ) {
+          Alert.alert(
+            "認証エラー",
+            "Supabase APIキーが無効です。\nanon_keyを確認してください。"
+          );
+          console.error("Supabase auth error:", sessionError);
+          return;
+        }
+
+        // ネットワークエラーや設定ミスの場合
+        if (
+          sessionError.message?.includes("fetch") ||
+          sessionError.message?.includes("network") ||
+          sessionError.message?.includes("Failed to fetch") ||
+          sessionError.message?.includes("Invalid URL") ||
+          sessionError.message?.includes("ENOTFOUND") ||
+          sessionError.message?.includes("ECONNREFUSED")
+        ) {
+          Alert.alert(
+            "接続エラー",
+            `ネットワークエラー: ${sessionError.message}`
+          );
+          console.error("Supabase network error:", sessionError);
+          return;
+        }
+
+        // その他の予期せぬエラー
+        Alert.alert(
+          "接続エラー",
+          `予期せぬエラーが発生しました: ${sessionError.message}`
+        );
+        console.error("Supabase unexpected error:", sessionError);
+        return;
+      }
+
+      // ここまで到達したら接続成功
+      Alert.alert(
+        "接続成功",
+        sessionData?.session
+          ? "Supabaseに接続できました（ログイン済み）"
+          : "Supabaseに接続できました（未ログイン状態）"
+      );
+
+      console.log("Supabase connection test successful:", {
+        hasSession: !!sessionData?.session,
+        sessionData: sessionData,
+      });
+    } catch (err) {
+      // ネットワークエラーなどの重大なエラーの場合
+      Alert.alert("接続エラー", `重大なエラーが発生しました: ${err}`);
+      console.error("Supabase critical error:", err);
+    }
+  };
+
   // オンボーディングを表示中の場合
   if (showOnboarding) {
     return (
@@ -93,6 +175,15 @@ export default function SettingsPage() {
         >
           <Text className="text-white text-center font-semibold text-lg">
             オンボーディングを表示
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="bg-blue-600 px-8 py-4 rounded-lg w-full max-w-xs mt-4"
+          onPress={handleTestSupabase}
+        >
+          <Text className="text-white text-center font-semibold text-lg">
+            Supabase接続テスト
           </Text>
         </TouchableOpacity>
       </View>
