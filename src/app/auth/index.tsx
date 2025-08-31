@@ -19,6 +19,8 @@ export default function AuthPage() {
     successMessage,
     mode,
     toggleMode,
+    setFocus,
+    trigger,
   } = useAuthForm();
 
   return (
@@ -64,11 +66,23 @@ export default function AuthPage() {
         <SubmitButton
           title={mode === "signin" ? "ログイン" : "新規登録"}
           loading={isSubmitting}
-          disabled={isSubmitting}
-          onPress={handleSubmit(onSubmit)}
+          onPress={() => {
+            void trigger();
+            handleSubmit(onSubmit, (invalid) => {
+              const firstKey = Object.keys(invalid)[0] as
+                | "email"
+                | "password"
+                | undefined;
+              if (firstKey) setFocus(firstKey);
+            })();
+          }}
         />
 
-        <TouchableOpacity onPress={toggleMode} className="mt-2">
+        <TouchableOpacity
+          onPress={toggleMode}
+          disabled={isSubmitting}
+          className="mt-2"
+        >
           <Text className="text-center text-blue-600">
             {mode === "signin"
               ? "アカウントをお持ちでないですか？新規登録"

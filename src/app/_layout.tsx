@@ -1,13 +1,17 @@
-import { Stack } from "expo-router";
-import { useEffect } from "react";
-import { Text, View } from "react-native";
+import { Stack, router, usePathname } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import { AppState, type AppStateStatus, Text, View } from "react-native";
 import { OnboardingContainer } from "../components/onboarding";
 import "../global.css";
 import { useOnboarding } from "../hooks/useOnboarding";
 import { adsService } from "../services";
+import supabase from "../services/supabaseClient";
 
 export default function Layout() {
   const { isLoading, hasSeenOnboarding } = useOnboarding();
+  const pathname = usePathname();
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
 
   useEffect(() => {
     // AdsServiceを使用してAdMobを初期化
@@ -20,6 +24,76 @@ export default function Layout() {
         console.error("Failed to initialize AdMob:", error);
       });
   }, []);
+
+  useEffect(() => {
+    const redirectBasedOnSession = (isAuthenticated: boolean): void => {
+      // ループ回避: すでに適切な場所にいる場合は何もしない
+      if (isAuthenticated) {
+        if (pathname?.startsWith("/auth")) {
+          // ログイン済みで認証画面にいる場合はタブへ
+          router.replace("(tabs)");
+        }
+        return;
+      }
+
+      // 未ログイン時は必ず /auth へ
+      if (!pathname?.startsWith("/auth")) {
+        router.replace("/auth");
+      }
+    };
+
+    let isMounted = true;
+
+    const checkInitialSession = async (): Promise<void> => {
+      try {
+        setIsAuthChecking(true);
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("getSession error:", error);
+        }
+        redirectBasedOnSession(!!data?.session);
+      } catch (e) {
+        console.error("Failed to get initial session:", e);
+      } finally {
+        if (isMounted) setIsAuthChecking(false);
+      }
+    };
+
+    void checkInitialSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        redirectBasedOnSession(!!session);
+      }
+    );
+
+    const handleAppStateChange = (nextAppState: AppStateStatus): void => {
+      const prevState = appStateRef.current;
+      appStateRef.current = nextAppState;
+      // 復帰時のみ最新セッションを再取得
+      if (prevState.match(/inactive|background/) && nextAppState === "active") {
+        supabase.auth
+          .getSession()
+          .then(({ data }) => {
+            redirectBasedOnSession(!!data.session);
+          })
+          .catch((e) => {
+            console.error("AppState getSession error:", e);
+          });
+      }
+    };
+
+    const appStateSubscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    return () => {
+      isMounted = false;
+      authListener.subscription.unsubscribe();
+      appStateSubscription.remove();
+    };
+  }, [pathname]);
 
   // 初回起動判定中はローディング表示
   if (isLoading) {
@@ -71,6 +145,14 @@ export default function Layout() {
   }
 
   // 2回目以降の起動時は通常のタブナビゲーション
+  if (isAuthChecking) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <Text className="text-gray-600">読み込み中...</Text>
+      </View>
+    );
+  }
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />

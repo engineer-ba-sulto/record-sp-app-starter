@@ -1,12 +1,15 @@
 import supabase from "@/services/supabaseClient";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const authSchema = z.object({
-  email: z.string().email("メールアドレスの形式が正しくありません"),
-  password: z.string().min(6, "パスワードは6文字以上で入力してください"),
+  email: z.email("メールアドレスの形式が正しくありません"),
+  password: z
+    .string()
+    .min(1, "パスワードは必須です")
+    .min(6, "パスワードは6文字以上で入力してください"),
 });
 
 export type AuthFormValues = z.infer<typeof authSchema>;
@@ -25,13 +28,16 @@ export function useAuthForm(initialMode: AuthMode = "signin") {
     defaultValues: { email: "", password: "" },
     mode: "onSubmit",
     reValidateMode: "onChange",
+    shouldFocusError: true,
   });
 
   const toggleMode = useCallback(() => {
     setFormError(undefined);
     setSuccessMessage(undefined);
+    // 入力値とエラーをクリア
+    form.reset({ email: "", password: "" });
     setMode((prev) => (prev === "signin" ? "signup" : "signin"));
-  }, []);
+  }, [form]);
 
   const onSubmit = useCallback(
     async (values: AuthFormValues) => {
@@ -66,19 +72,16 @@ export function useAuthForm(initialMode: AuthMode = "signin") {
     [mode]
   );
 
-  return useMemo(
-    () => ({
-      ...form,
-      mode,
-      toggleMode,
-      onSubmit,
-      formError,
-      successMessage,
-      setFormError,
-      setSuccessMessage,
-    }),
-    [form, mode, toggleMode, onSubmit, formError, successMessage]
-  );
+  return {
+    ...form,
+    mode,
+    toggleMode,
+    onSubmit,
+    formError,
+    successMessage,
+    setFormError,
+    setSuccessMessage,
+  };
 }
 
 export default useAuthForm;
