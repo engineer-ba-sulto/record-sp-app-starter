@@ -21,8 +21,8 @@
 **ファイル**:
 
 - `docs/ticket/P3-003-db-schema-initialization.md`（本チケット）
-- `src/db/schema/*`（Drizzle スキーマ定義）
-- `migrations/*`（生成 SQL）
+- `src/drizzle/schema/*`（Drizzle スキーマ定義）
+- `src/drizzle/migrations/*`（生成 SQL）
 
 **API**: N/A
 
@@ -50,8 +50,8 @@ create table if not exists public.app_meta (
 ### 実装手順
 
 1. 命名規約・制約方針・RLS 原則を文書化
-2. Drizzle スキーマを `src/db/schema/` に雛形作成
-3. `drizzle-kit generate` で SQL 生成
+2. Drizzle スキーマを `src/drizzle/schema/` に雛形作成
+3. `drizzle-kit generate` で SQL 生成（出力先: `src/drizzle/migrations/`）
 4. Supabase に生成 SQL を適用
 5. 新規テーブル追加時のレビュー観点（RLS/インデックス/リレーション）をチェックリスト化
 

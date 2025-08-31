@@ -11,10 +11,12 @@ Drizzle（`drizzle-orm`）と Drizzle Kit（`drizzle-kit`）を導入し、Postg
 
 - [ ] 依存関係の導入：`drizzle-orm`、`drizzle-kit`、`pg`（生成時のみ）
 - [ ] `drizzle.config.ts` を作成し、Supabase 用の設定を定義
-- [ ] `src/db/schema/` を作成して初期スキーマ用のディレクトリを用意
-- [ ] マイグレーション出力先（例：`drizzle/` もしくは `migrations/`）を用意
+- [ ] `src/drizzle/schema/` を作成して初期スキーマ用のディレクトリを用意
+- [ ] マイグレーション出力先（`src/drizzle/migrations/`）を用意
 - [ ] `package.json` に生成・適用スクリプトを追加（例：`drizzle-kit generate`）
 - [ ] 生成された SQL を Supabase に適用（Supabase CLI または SQL エディタ）
+  - Supabase CLI を用いる場合：`supabase db push --local` ではなく、本番/開発いずれも SQL を Supabase プロジェクトの SQL エディタに貼り付けて適用する想定。
+  - 生成先は `src/drizzle/migrations/`。出力ファイルを順に適用する。
 
 ### 技術仕様
 
@@ -24,19 +26,19 @@ Drizzle（`drizzle-orm`）と Drizzle Kit（`drizzle-kit`）を導入し、Postg
 
 - `docs/ticket/P3-001-drizzle-setup.md`（本チケット）
 - `drizzle.config.ts`（ルート）
-- `src/db/schema/*`（スキーマ定義）
-- `migrations/*` または `drizzle/*`（生成 SQL）
+- `src/drizzle/schema/*`（スキーマ定義）
+- `src/drizzle/migrations/*`（生成 SQL）
 
 **API**: N/A（スキーマ・マイグレーション基盤の整備）
 
 ### 実装手順
 
 1. `drizzle-orm`、`drizzle-kit` をインストール
-2. ルートに `drizzle.config.ts` を作成（`schema: 'src/db/schema'`、`out: 'migrations'`）
-3. `src/db/schema/` を作成し、空のスキーマファイル群を配置（実体は後続チケットで定義）
+2. ルートに `drizzle.config.ts` を作成（`schema: "src/drizzle/schema"`、`out: "src/drizzle/migrations"`）
+3. `src/drizzle/schema/` を作成し、空のスキーマファイル群を配置（実体は後続チケットで定義）
 4. `package.json` に `generate` スクリプトを追加（例：`drizzle-kit generate`）
 5. 生成を実行し、空マイグレーションが出力されることを確認
-6. Supabase にマイグレーションを適用（CLI または SQL エディタ）
+6. Supabase にマイグレーションを適用（SQL エディタで `src/drizzle/migrations/` の SQL を順次実行）
 
 ### テスト項目
 
