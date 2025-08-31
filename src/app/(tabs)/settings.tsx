@@ -150,6 +150,19 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        Alert.alert("エラー", error.message ?? "ログアウトに失敗しました");
+        return;
+      }
+      Alert.alert("ログアウト", "ログアウトしました");
+    } catch (err) {
+      Alert.alert("エラー", `ログアウト処理でエラーが発生しました: ${err}`);
+    }
+  };
+
   // オンボーディングを表示中の場合
   if (showOnboarding) {
     return (
@@ -184,6 +197,15 @@ export default function SettingsPage() {
         >
           <Text className="text-white text-center font-semibold text-lg">
             Supabase接続テスト
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="bg-gray-700 px-8 py-4 rounded-lg w-full max-w-xs mt-4"
+          onPress={handleSignOut}
+        >
+          <Text className="text-white text-center font-semibold text-lg">
+            ログアウト
           </Text>
         </TouchableOpacity>
       </View>

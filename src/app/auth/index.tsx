@@ -1,43 +1,98 @@
+import {
+  FieldErrorMessage,
+  FormError,
+  PasswordField,
+  SubmitButton,
+  TextField,
+} from "@/components/auth";
+import { useAuthForm } from "@/hooks/auth/useAuthForm";
 import React from "react";
-import { Pressable, SafeAreaView, Text, TextInput, View } from "react-native";
+import { SafeAreaView, Text, TouchableOpacity, View } from "react-native";
 
 export default function AuthPage() {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    onSubmit,
+    formError,
+    successMessage,
+    mode,
+    toggleMode,
+    setFocus,
+    trigger,
+  } = useAuthForm();
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-1 px-6 py-8 gap-6">
         <View className="mt-8">
-          <Text className="text-2xl font-bold text-gray-900">ログイン</Text>
+          <Text className="text-2xl font-bold text-gray-900">
+            {mode === "signin" ? "ログイン" : "新規登録"}
+          </Text>
           <Text className="text-gray-600 mt-2">
-            メールアドレスでログイン（ダミーUI）
+            {mode === "signin"
+              ? "メールアドレスでログイン"
+              : "メールアドレスでアカウントを作成"}
           </Text>
         </View>
 
-        <View className="gap-4 mt-4">
-          <TextInput
+        <View className="gap-2 mt-4">
+          <TextField
+            control={control}
+            name="email"
             placeholder="メールアドレス"
             keyboardType="email-address"
             autoCapitalize="none"
-            className="border border-gray-300 rounded-md px-4 py-3 text-gray-900"
           />
-          <TextInput
+          <FieldErrorMessage message={errors.email?.message} />
+
+          <PasswordField
+            control={control}
+            name="password"
             placeholder="パスワード"
-            secureTextEntry
-            className="border border-gray-300 rounded-md px-4 py-3 text-gray-900"
           />
+          <FieldErrorMessage message={errors.password?.message} />
         </View>
 
-        <Pressable
+        <FormError message={formError} />
+
+        {successMessage ? (
+          <Text className="text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2 text-xs">
+            {successMessage}
+          </Text>
+        ) : null}
+
+        <SubmitButton
+          title={mode === "signin" ? "ログイン" : "新規登録"}
+          loading={isSubmitting}
           onPress={() => {
-            console.log("ログインボタンが押されました");
+            void trigger();
+            handleSubmit(onSubmit, (invalid) => {
+              const firstKey = Object.keys(invalid)[0] as
+                | "email"
+                | "password"
+                | undefined;
+              if (firstKey) setFocus(firstKey);
+            })();
           }}
-          className="mt-2 bg-blue-600 rounded-md px-4 py-3 items-center"
+        />
+
+        <TouchableOpacity
+          onPress={toggleMode}
+          disabled={isSubmitting}
+          className="mt-2"
         >
-          <Text className="text-white font-semibold">ログイン（ダミー）</Text>
-        </Pressable>
+          <Text className="text-center text-blue-600">
+            {mode === "signin"
+              ? "アカウントをお持ちでないですか？新規登録"
+              : "すでにアカウントをお持ちですか？ログイン"}
+          </Text>
+        </TouchableOpacity>
 
         <View className="mt-auto">
           <Text className="text-center text-gray-400 text-xs">
-            実際の認証は次のステップで実装します
+            Supabase認証を使用
           </Text>
         </View>
       </View>

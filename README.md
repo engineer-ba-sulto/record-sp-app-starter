@@ -329,12 +329,40 @@ export const getAdUnitId = (type: "banner" | "interstitial" | "rewarded") => {
 
 ## Supabase 接続の初期設定（開発用メモ）
 
-- 環境変数（`.env`）で `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` を管理します。
-- サンプル: `.env.example` を用意しています。値を設定して `.env` にコピーしてください。
-- 参照コード:
-  - `src/config/supabase.ts`: `process.env` から公開環境変数を参照
-  - `src/services/supabaseClient.ts`: 単一インスタンスの Supabase クライアント生成
-- 接続確認例（任意の画面などで）:
+### 1. ダッシュボード設定（Email/Password を有効化）
+
+Supabase のプロジェクトダッシュボードで以下を有効化してください：
+
+1. Auth → Providers → Email へ移動
+2. Email サインインを有効化（Password 認証を許可）
+
+この設定により、メール/パスワードでのサインアップ・サインイン API が利用可能になります。
+
+### 2. 環境変数の管理方針（EXPO*PUBLIC* を使用）
+
+- 本プロジェクトでは `process.env.EXPO_PUBLIC_*` を使用して Supabase 設定をアプリに埋め込みます。
+- ローカル開発: ルートにある `.env.example` を `.env` にコピーし、値を設定します。
+- CI / 本番（EAS Build）: EAS Secrets またはビルド時の環境変数で、同名キーを登録します。
+  - `EXPO_PUBLIC_SUPABASE_URL`
+  - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+
+> 注: `app.json` の `extra` は本プロジェクトでは使用しません。`EXPO_PUBLIC_*` 環境変数に統一します。
+
+### 3. 手順（ローカル）
+
+```sh
+cp .env.example .env
+# .env を開いて以下を設定
+# EXPO_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+# EXPO_PUBLIC_SUPABASE_ANON_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+### 4. 参照コード
+
+- `src/config/supabase.ts`: `process.env` から公開環境変数を参照
+- `src/services/supabaseClient.ts`: 単一インスタンスの Supabase クライアント生成
+
+### 5. 接続確認例（任意の画面などで）
 
 ```ts
 import supabase from "@/services/supabaseClient";
