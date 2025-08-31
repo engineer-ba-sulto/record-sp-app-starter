@@ -24,6 +24,27 @@
 
 **API**: N/A（DB スキーマ設定）
 
+Drizzle スキーマ定義（TypeScript 例）:
+
+```ts
+// src/drizzle/schema/profiles.ts
+import { pgTable, uuid, text, timestamp } from "drizzle-orm/pg-core";
+
+export const profiles = pgTable("profiles", {
+  id: uuid("id").primaryKey(), // auth.users(id) を参照（外部キーはマイグレーションで付与）
+  username: text("username").unique(),
+  avatarUrl: text("avatar_url"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+// 注意: Drizzle-Kit の差分生成対象にするため、テーブルは必ず export してください。
+```
+
 参考 SQL（雛形例）:
 
 ```sql
@@ -55,14 +76,19 @@ for each row execute function public.set_updated_at();
 
 ### 実装手順
 
-1. `public.profiles` の DDL を適用（PK/参照/タイムスタンプ）
-2. `updated_at` 自動更新トリガーを作成
-3. 既存ユーザーに対して初期レコードを作成（必要ならバックフィル）
-4. 簡易動作確認（テーブル作成・トリガーが機能）
+1. Drizzle スキーマを `src/drizzle/schema/profiles.ts` に作成し export
+2. `npx drizzle-kit generate` で `src/drizzle/migrations/` に SQL を生成
+3. 生成 SQL を Supabase に適用（推奨: SQL エディタで順次実行 / 代替: `npx drizzle-kit push:pg`）
+4. `public.profiles` に ON DELETE CASCADE の外部キーと `updated_at` トリガーを含める
+5. 既存ユーザーのバックフィルを必要に応じて実施
+6. 簡易動作確認（作成/更新で `updated_at` が更新される・ユーザー削除で CASCADE）
 
 ### テスト項目
 
-- [ ] ユーザー削除時にプロフィールが自動削除される
+- [ ] `drizzle-kit generate` が成功し、`src/drizzle/migrations/` に SQL が出力される
+- [ ] 生成 SQL の適用が Supabase で成功する
+- [ ] ユーザー削除時にプロフィールが自動削除される（ON DELETE CASCADE）
+- [ ] `profiles` の更新時に `updated_at` が自動更新される（トリガー動作）
 
 ### 完了条件
 
@@ -74,6 +100,9 @@ for each row execute function public.set_updated_at();
 
 - `profiles.id` は `auth.users.id` と同じ UUID を使用します。アプリ側からの insert では `id` を明示的に設定してください。
 - サービスロールキーでのバックフィルは RLS の影響外です。誤用防止のため取り扱いに注意してください。
+- Drizzle の `$onUpdate` はアプリ経由更新に依存するため、更新時刻は DB トリガーで統一管理することを推奨します。
+- Drizzle-Kit は schema の export が必須です。未 export のテーブルは差分に含まれません。
+- RLS/ポリシーは P3-004 で適用します。ポリシーでは `TO authenticated` と `(select auth.uid())` の形を推奨し、対象列にインデックスを付与してください。
 
 ### 関連チケット
 

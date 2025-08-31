@@ -39,20 +39,28 @@ alter table public.some_table enable row level security;
 
 create policy "allow select own rows" on public.some_table
   for select
-  using (auth.uid() = user_id);
+  to authenticated
+  using ((select auth.uid()) = user_id);
 
 create policy "allow insert as self" on public.some_table
   for insert
-  with check (auth.uid() = user_id);
+  to authenticated
+  with check ((select auth.uid()) = user_id);
 
 create policy "allow update own rows" on public.some_table
   for update
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+  to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
 
 create policy "allow delete own rows" on public.some_table
   for delete
-  using (auth.uid() = user_id);
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
+-- 推奨インデックス（USING で参照する列）
+create index if not exists some_table_user_id_idx
+  on public.some_table using btree(user_id);
 ```
 
 ### 実装手順
@@ -82,6 +90,8 @@ create policy "allow delete own rows" on public.some_table
 - `auth.uid()` は認証済みユーザーの ID を返します。未認証セッションでは null のため操作は拒否されます。
 - サービスロールキー（サーバー側処理）は RLS の影響を受けません。誤用を避けるためクライアントでは絶対に使用しないでください。
 - 監査や運用要件に応じて delete 許可の要否を検討してください。
+- パフォーマンス上、RLS 内の結合は避け、`IN`/`EXISTS`に書き換えてください（必要に応じて security definer 関数も検討）。
+- 役割は必ず `to authenticated` 等で明示し、不要なポリシー評価を避けます。
 
 ### 関連チケット
 
