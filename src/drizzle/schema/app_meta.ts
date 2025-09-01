@@ -1,10 +1,9 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
-export const profiles = pgTable("profiles", {
+export const app_meta = pgTable("app_meta", {
   id: uuid("id").primaryKey().defaultRandom(),
-  user_id: uuid("user_id").notNull(),
-  username: text("username").unique(),
-  avatar_url: text("avatar_url"),
+  key: text("key").notNull().unique(),
+  value: jsonb("value"),
   created_at: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
