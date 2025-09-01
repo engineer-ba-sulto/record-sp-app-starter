@@ -30,5 +30,11 @@
   },
   "android": {
     "package": "com.engineerbasulto.admobcomponentssample"
+  },
+  "extra": {
+    "router": {},
+    "eas": {
+      "projectId": "1fe723ac-5796-43d7-9d75-27b249db666a"
+    }
   }
 }
