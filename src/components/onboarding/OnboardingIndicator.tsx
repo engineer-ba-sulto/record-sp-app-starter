@@ -1,13 +1,16 @@
+import { useOnboardingIndicator } from "@/hooks";
 import { View } from "react-native";
 import Animated from "react-native-reanimated";
-import {
-  OnboardingIndicatorLogicProps,
-  useOnboardingIndicator,
-} from "../../hooks/useOnboardingIndicator";
 
 // コンポーネントのProps型定義
-export interface OnboardingIndicatorProps
-  extends OnboardingIndicatorLogicProps {}
+export interface OnboardingIndicatorProps {
+  totalScreens: number;
+  currentIndex: number;
+  activeColor?: string;
+  inactiveColor?: string;
+  size?: number;
+  spacing?: number;
+}
 
 export const OnboardingIndicator: React.FC<OnboardingIndicatorProps> = (
   props

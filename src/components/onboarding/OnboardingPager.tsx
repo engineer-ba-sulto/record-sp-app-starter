@@ -1,11 +1,12 @@
+import { useOnboardingPager } from "@/hooks";
 import { ScrollView, View } from "react-native";
-import {
-  OnboardingPagerLogicProps,
-  useOnboardingPager,
-} from "../../hooks/useOnboardingPager";
 
 // コンポーネントのProps型定義
-export interface OnboardingPagerProps extends OnboardingPagerLogicProps {}
+export interface OnboardingPagerProps {
+  children: React.ReactNode[];
+  currentIndex: number;
+  onIndexChange: (index: number) => void;
+}
 
 export const OnboardingPager: React.FC<OnboardingPagerProps> = ({
   children,

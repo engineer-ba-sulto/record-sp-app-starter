@@ -1,7 +1,7 @@
+import { OnboardingContainer } from "@/components/onboarding";
 import { useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
-import { OnboardingContainer } from "../../components/onboarding";
-import { useOnboarding } from "../../hooks/useOnboarding";
+import { useOnboarding } from "../../hooks";
 import supabase from "../../services/supabaseClient";
 
 export default function SettingsPage() {

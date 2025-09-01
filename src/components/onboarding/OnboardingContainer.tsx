@@ -1,8 +1,5 @@
 import { SafeAreaView, View } from "react-native";
-import {
-  OnboardingContainerLogicProps,
-  useOnboardingContainer,
-} from "../../hooks/useOnboardingContainer";
+import { useOnboardingContainer } from "@/hooks";
 import { OnboardingIndicator } from "./OnboardingIndicator";
 import { OnboardingPager } from "./OnboardingPager";
 import { OnboardingScreen1 } from "./OnboardingScreen1";
@@ -10,14 +7,26 @@ import { OnboardingScreen2 } from "./OnboardingScreen2";
 import { OnboardingScreen3 } from "./OnboardingScreen3";
 
 // コンポーネントのProps型定義
-export interface OnboardingContainerProps
-  extends OnboardingContainerLogicProps {}
+export interface OnboardingContainerProps {
+  screens: Array<{
+    title: string;
+    subtitle: string;
+    description: string;
+    iconName: string;
+    iconColor: string;
+    backgroundColor: string;
+    textColor: string;
+  }>;
+  onComplete?: () => void;
+  onSkip?: () => void;
+}
 
 export const OnboardingContainer: React.FC<OnboardingContainerProps> = (
   props
 ) => {
-  const { state, handlers, totalScreens, screens } =
-    useOnboardingContainer(props);
+  const { state, handlers, totalScreens } = useOnboardingContainer(props);
+
+  const { screens } = props;
 
   const renderScreen = (screen: any, index: number) => {
     const isLastScreen = index === totalScreens - 1;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import adsService from "../services/ads";
+import adsService from "../../services/ads";
 
 /**
  * インタースティシャル広告の状態管理と操作を行うカスタムフック

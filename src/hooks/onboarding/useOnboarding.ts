@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { handleNavigationError } from "../utils/navigationHelpers";
-import { onboardingStorage } from "../utils/onboardingStorage";
+import { handleNavigationError } from "../../utils/navigationHelpers";
+import { onboardingStorage } from "../../utils/onboardingStorage";
 
 /**
  * オンボーディング状態を管理するカスタムフック

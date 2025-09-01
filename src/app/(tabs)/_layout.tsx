@@ -1,4 +1,3 @@
-import { AdBanner } from "@/components/ads";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 

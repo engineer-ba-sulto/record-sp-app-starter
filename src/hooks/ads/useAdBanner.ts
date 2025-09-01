@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getAdUnitId } from "../config/ads";
+import { getAdUnitId } from "../../config/ads";
 
 export interface AdBannerLogicProps {
   /**

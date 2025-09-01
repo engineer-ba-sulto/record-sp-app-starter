@@ -1,9 +1,9 @@
+import { OnboardingContainer } from "@/components/onboarding";
 import { Stack, router, usePathname } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { AppState, type AppStateStatus, Text, View } from "react-native";
-import { OnboardingContainer } from "../components/onboarding";
 import "../global.css";
-import { useOnboarding } from "../hooks/useOnboarding";
+import { useOnboarding } from "../hooks";
 import { adsService } from "../services";
 import supabase from "../services/supabaseClient";
 
