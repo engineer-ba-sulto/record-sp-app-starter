@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { handleNavigationError } from "../utils/navigationHelpers";
+import { handleNavigationError } from "../../utils/navigationHelpers";
 import { useOnboarding } from "./useOnboarding";
 
 export interface OnboardingContainerLogicProps {
