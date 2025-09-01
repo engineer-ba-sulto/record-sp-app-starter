@@ -31,13 +31,13 @@ export default function Layout() {
       if (isAuthenticated) {
         if (pathname?.startsWith("/auth")) {
           // ログイン済みで認証画面にいる場合はタブへ
-          router.replace("(tabs)");
+          router.replace("/(tabs)");
         }
         return;
       }
 
       // 未ログイン時は必ず /auth へ
-      if (!pathname?.startsWith("/auth")) {
+      if (!pathname?.startsWith("/auth") && pathname !== "/") {
         router.replace("/auth");
       }
     };

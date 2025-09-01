@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  handleNavigationError,
-  navigateToAuth,
-} from "../utils/navigationHelpers";
+import { handleNavigationError } from "../utils/navigationHelpers";
 import { onboardingStorage } from "../utils/onboardingStorage";
 
 /**
@@ -47,14 +44,14 @@ export const useOnboarding = () => {
   };
 
   /**
-   * オンボーディング完了と認証画面への遷移を統合した処理
+   * オンボーディング完了処理（ナビゲーションは自動的に処理される）
    */
   const completeOnboardingWithNavigation = async () => {
     try {
       await completeOnboarding();
-      navigateToAuth();
+      // ナビゲーションは_layout.tsxの認証チェックロジックが自動的に処理する
     } catch (error) {
-      console.error("Failed to complete onboarding with navigation:", error);
+      console.error("Failed to complete onboarding:", error);
       handleNavigationError(error);
       throw error;
     }
