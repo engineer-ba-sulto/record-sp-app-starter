@@ -11,7 +11,8 @@ export default function Layout() {
   const { isLoading, hasSeenOnboarding } = useOnboarding();
   const pathname = usePathname();
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
-  const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthInitialized, setIsAuthInitialized] = useState<boolean>(false);
 
   useEffect(() => {
     // AdsServiceを使用してAdMobを初期化
@@ -26,44 +27,36 @@ export default function Layout() {
   }, []);
 
   useEffect(() => {
-    const redirectBasedOnSession = (isAuthenticated: boolean): void => {
-      // ループ回避: すでに適切な場所にいる場合は何もしない
-      if (isAuthenticated) {
-        if (pathname?.startsWith("/auth")) {
-          // ログイン済みで認証画面にいる場合はタブへ
-          router.replace("/(tabs)");
-        }
-        return;
-      }
-
-      // 未ログイン時は必ず /auth へ
-      if (!pathname?.startsWith("/auth") && pathname !== "/") {
-        router.replace("/auth");
-      }
-    };
-
     let isMounted = true;
 
     const checkInitialSession = async (): Promise<void> => {
       try {
-        setIsAuthChecking(true);
         const { data, error } = await supabase.auth.getSession();
         if (error) {
           console.error("getSession error:", error);
         }
-        redirectBasedOnSession(!!data?.session);
+
+        if (isMounted) {
+          setIsAuthenticated(!!data?.session);
+          setIsAuthInitialized(true);
+        }
       } catch (e) {
         console.error("Failed to get initial session:", e);
-      } finally {
-        if (isMounted) setIsAuthChecking(false);
+        if (isMounted) {
+          setIsAuthenticated(false);
+          setIsAuthInitialized(true);
+        }
       }
     };
 
     void checkInitialSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        redirectBasedOnSession(!!session);
+      (event, session) => {
+        console.log("Auth state changed:", event, !!session);
+        if (isMounted) {
+          setIsAuthenticated(!!session);
+        }
       }
     );
 
@@ -75,7 +68,9 @@ export default function Layout() {
         supabase.auth
           .getSession()
           .then(({ data }) => {
-            redirectBasedOnSession(!!data.session);
+            if (isMounted) {
+              setIsAuthenticated(!!data.session);
+            }
           })
           .catch((e) => {
             console.error("AppState getSession error:", e);
@@ -93,7 +88,46 @@ export default function Layout() {
       authListener.subscription.unsubscribe();
       appStateSubscription.remove();
     };
-  }, [pathname]);
+  }, []);
+
+  // 初期化完了時の画面遷移処理
+  useEffect(() => {
+    if (!isAuthInitialized || isLoading || !hasSeenOnboarding) return;
+
+    // 初期化完了後、適切な画面に遷移
+    setTimeout(() => {
+      if (isAuthenticated) {
+        router.replace("/(tabs)");
+      } else {
+        router.replace("/auth");
+      }
+    }, 100);
+  }, [isAuthInitialized, isLoading, hasSeenOnboarding, isAuthenticated]);
+
+  // 認証状態が変更された時のナビゲーション処理
+  useEffect(() => {
+    if (!isAuthInitialized || isLoading || !hasSeenOnboarding) return;
+
+    const currentPath = pathname;
+
+    if (isAuthenticated) {
+      // ログイン済みで認証画面にいる場合はタブへ
+      if (currentPath?.startsWith("/auth") || currentPath === "/") {
+        router.replace("/(tabs)");
+      }
+    } else {
+      // 未ログインでタブにいる場合は認証画面へ
+      if (currentPath?.startsWith("/(tabs)") || currentPath === "/") {
+        router.replace("/auth");
+      }
+    }
+  }, [
+    isAuthenticated,
+    isAuthInitialized,
+    pathname,
+    isLoading,
+    hasSeenOnboarding,
+  ]);
 
   // 初回起動判定中はローディング表示
   if (isLoading) {
@@ -144,8 +178,8 @@ export default function Layout() {
     );
   }
 
-  // 2回目以降の起動時は通常のタブナビゲーション
-  if (isAuthChecking) {
+  // 認証チェック中はローディング表示
+  if (!isAuthInitialized) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
         <Text className="text-gray-600">読み込み中...</Text>
@@ -153,8 +187,10 @@ export default function Layout() {
     );
   }
 
+  // 認証状態に関係なくすべてのルートを定義
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="auth" />
       <Stack.Screen name="(tabs)" />
     </Stack>
   );
