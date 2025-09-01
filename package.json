@@ -7,12 +7,15 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "deploy": "npx expo export -p web && npx eas-cli@latest deploy"
+    "deploy": "npx expo export -p web && npx eas-cli@latest deploy",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "npx drizzle-kit migrate"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@supabase/supabase-js": "^2.56.0",
+    "dotenv": "^17.2.1",
     "expo": "53.0.22",
     "expo-build-properties": "~0.14.8",
     "expo-constants": "~17.1.4",
@@ -21,6 +24,8 @@
     "expo-splash-screen": "~0.30.7",
     "expo-status-bar": "~2.2.3",
     "nativewind": "^4.0.1",
+    "pg": "^8.16.3",
+    "postgres": "^3.4.7",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-hook-form": "^7.62.0",
@@ -36,6 +41,8 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": "~19.0.10",
+    "drizzle-kit": "^0.31.4",
+    "drizzle-orm": "^0.44.5",
     "typescript": "~5.8.3"
   },
   "private": true

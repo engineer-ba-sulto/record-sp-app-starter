@@ -29,8 +29,10 @@
 
 ## **ステップ 3：データベース（Supabase/Postgres）**
 
-- **3-1. セキュリティ設定（RLS）**: 「ユーザーは自身のデータのみ」ポリシーを基本方針として設定。
-- **3-2. スキーマ初期化**: 各アプリの要件に応じてテーブル/インデックス/制約を設計・作成（このロードマップでは雛形レベルに留める）。
+- **3-1. Drizzle 導入**: `drizzle-orm` と `drizzle-kit` を導入し、`drizzle.config.ts` と `src/drizzle/schema/*` を作成。`drizzle-kit generate` で SQL マイグレーションを生成（出力先: `src/drizzle/migrations/*`）、Supabase に適用（Supabase CLI もしくは SQL エディタ）。実行時の DB アクセスは引き続き `@supabase/supabase-js` を使用。
+- **3-2. プロフィールテーブル作成（Drizzle スキーマ → マイグレーション適用、auth.users 連携）**: `src/db/schema/profiles.ts` に `public.profiles` を定義し、ON DELETE CASCADE を設定。`drizzle-kit generate` で生成した SQL を Supabase に適用。
+- **3-3. スキーマ初期化（Drizzle）**: 各アプリの要件に応じてテーブル/インデックス/制約を Drizzle スキーマに定義し、マイグレーションを生成・適用（このロードマップでは雛形レベルに留める）。
+- **3-4. セキュリティ設定（RLS）**: すべてのアプリ用テーブルで RLS を有効化し、「ユーザーは自身のデータのみ」ポリシー（select/insert/update を自己行のみに制限）を適用。RLS は SQL マイグレーション（`src/drizzle/migrations/*.sql` など）として管理・適用。
 
 ## **ステップ 4：ペイウォールの実装**
 
